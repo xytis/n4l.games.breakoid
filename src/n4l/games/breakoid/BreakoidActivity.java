@@ -7,7 +7,8 @@ import android.view.Window;
 import android.view.WindowManager;
 
 public class BreakoidActivity extends Activity {
-	private static final String TAG = "DEBUG: " + BreakoidActivity.class.getSimpleName();
+	private static final String TAG = "DEBUG: "
+			+ BreakoidActivity.class.getSimpleName();
 
 	/** Called when the activity is first created. */
 	@Override

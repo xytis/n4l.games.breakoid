@@ -5,6 +5,7 @@ package n4l.games.breakoid;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -17,7 +18,7 @@ import android.view.SurfaceView;
  */
 public class MainGameView extends SurfaceView implements SurfaceHolder.Callback {
 
-	private static final String TAG = MainGameView.class.getSimpleName();
+	private static final String TAG = "DEBUG: " + MainGameView.class.getSimpleName();
 
 	private MainThread m_thread;
 
@@ -74,5 +75,7 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 
 	@Override
 	protected void onDraw(Canvas canvas) {
+		 canvas.drawBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ball), 10, 10, null);
 	}
+
 }

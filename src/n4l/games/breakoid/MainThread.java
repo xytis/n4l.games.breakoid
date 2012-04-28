@@ -3,6 +3,7 @@
  */
 package n4l.games.breakoid;
 
+import android.graphics.Canvas;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
@@ -11,8 +12,9 @@ import android.view.SurfaceHolder;
  * 
  */
 public class MainThread extends Thread {
-	
-	private static final String TAG = MainThread.class.getSimpleName();
+
+	private static final String TAG = "DEBUG: "
+			+ MainThread.class.getSimpleName();
 
 	private SurfaceHolder surfaceHolder;
 	private MainGameView gameView;
@@ -32,11 +34,25 @@ public class MainThread extends Thread {
 	@Override
 	public void run() {
 		long tickCount = 0L;
+		Canvas canvas;
 		Log.d(TAG, "Starting game loop");
 		while (running) {
+			canvas = null;
 			tickCount++;
-			// update game state
-			// render state to the screen
+			try {
+				canvas = this.surfaceHolder.lockCanvas();
+				synchronized (surfaceHolder) {
+					// update game state
+					// draws the canvas on the panel
+					this.gameView.onDraw(canvas);
+				}
+			} finally {
+				// in case of an exception the surface is not left in
+				// an inconsistent state
+				if (canvas != null) {
+					surfaceHolder.unlockCanvasAndPost(canvas);
+				}
+			}
 		}
 		Log.d(TAG, "Game loop executed " + tickCount + " times");
 	}

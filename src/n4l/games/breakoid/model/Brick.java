@@ -13,6 +13,11 @@ public class Brick extends Model {
 		super(bitmap, x, y);
 		// TODO Auto-generated constructor stub
 	}
+	
+	public boolean isDestroyed()
+	{
+		return destroyed;
+	}
 
 	public boolean isHit(int x, int y, int radius) {
 		if (destroyed) {

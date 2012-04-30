@@ -146,16 +146,27 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 
 	public void update() {
 		paddle.update();
-		Iterator<Ball> i = balls.iterator();
-		while (i.hasNext()) {
+		for (int i = 0; i < balls.size(); i++)
+		{
 			// Boundary params for later use.
-			Ball ball = i.next();
+			Ball ball = balls.get(i);
 			ball.update(bricks, paddle, 0, getWidth(), 0, getHeight());
 			if (ball.isOut())
 			{
-				balls.remove(ball);
+				balls.remove(i);
+				i--;
 			}
 		}
+		
+		for (int i = 0; i < bricks.size(); i++)
+		{
+			if (bricks.get(i).isDestroyed())
+			{
+				bricks.remove(i);
+				i--;
+			}
+		}		
+		
 		if (balls.isEmpty())
 		{
 			resetBall();

@@ -3,9 +3,12 @@
  */
 package n4l.games.breakoid;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import n4l.games.breakoid.model.*;
-import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -25,7 +28,8 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 
 	private MainThread m_thread;
 
-	private Ball ball;
+	private ArrayList<Brick> bricks;
+	private ArrayList<Ball> balls;
 	private Paddle paddle;
 
 	public MainGameView(Context context) {
@@ -47,15 +51,42 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 
-		ball = new Ball(BitmapFactory.decodeResource(getResources(),
-				R.drawable.ball), getWidth() / 2, 50);
 		paddle = new Paddle(BitmapFactory.decodeResource(getResources(),
-				R.drawable.paddle), getWidth() / 2, getHeight() - 50, -10,
+				R.drawable.paddle), getWidth() / 2, getHeight() - 25, -10,
 				getWidth() + 10);
+
+		balls = new ArrayList<Ball>();
+		balls.add(new Ball(BitmapFactory.decodeResource(getResources(),
+				R.drawable.ball), paddle.getX(), paddle.getY()
+				- paddle.getBitmap().getHeight() / 2 - 17));
+
+		bricks = new ArrayList<Brick>();
+		layThoseBricks();
 
 		// When surface is created
 		m_thread.setRunning(true);
 		m_thread.start();
+	}
+
+	private void layThoseBricks() {
+		// For now, just add static amount of bricks. No fancy stuff.
+		Bitmap brick = BitmapFactory.decodeResource(getResources(),
+				R.drawable.brick);
+		int sizeX = (getWidth() - 10) / brick.getWidth();
+		int sizeY = (getHeight() / 2 - 10) / brick.getHeight();
+
+		// Center horizontally
+		int offsetX = (brick.getWidth() / 2)
+				+ (getWidth() - brick.getWidth() * sizeX) / 2;
+		// 5 pixels above
+		int offsetY = (brick.getHeight() / 2) + 5;
+
+		for (int i = 0; i < sizeX; i++) {
+			for (int j = 0; j < sizeY; j++) {
+				bricks.add(new Brick(brick, brick.getWidth() * i + offsetX,
+						brick.getHeight() * j + offsetY));
+			}
+		}
 	}
 
 	@Override
@@ -80,13 +111,6 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 		if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
 			Log.d(TAG, "Handling ACTION_DOWN");
 			paddle.handleActionDown((int) event.getX(), (int) event.getY());
-			// if (event.getY() > getHeight() - 50) {
-			// m_thread.setRunning(false);
-			// ((Activity) getContext()).finish();
-			// } else {
-			//
-			// Log.d(TAG, "Coords: x=" + event.getX() + ",y=" + event.getY());
-			// }
 		}
 		if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
 			Log.d(TAG, "Handling ACTION_MOVE");
@@ -95,19 +119,34 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 		if (event.getActionMasked() == MotionEvent.ACTION_UP) {
 			Log.d(TAG, "Handling ACTION_UP");
 			paddle.handleActionUp((int) event.getX(), (int) event.getY());
+			Iterator<Ball> i = balls.iterator();
+			while (i.hasNext()) {
+				(i.next()).launch(paddle.getX());
+			}
 		}
 		return true;
 	}
 
-	@Override
-	protected void onDraw(Canvas canvas) {
+	protected void render(Canvas canvas) {
 		canvas.drawColor(Color.BLACK);
-		ball.draw(canvas);
+		Iterator<Ball> i = balls.iterator();
+		while (i.hasNext()) {
+			(i.next()).draw(canvas);
+		}
+		Iterator<Brick> j = bricks.iterator();
+		while (j.hasNext()) {
+			(j.next()).draw(canvas);
+		}
 		paddle.draw(canvas);
 	}
 
 	public void update() {
 		paddle.update();
+		Iterator<Ball> i = balls.iterator();
+		while (i.hasNext()) {
+			// Boundary params for later use.
+			(i.next()).update(bricks, paddle, 0, getWidth(), 0, getHeight());
+		}
 	}
 
 }

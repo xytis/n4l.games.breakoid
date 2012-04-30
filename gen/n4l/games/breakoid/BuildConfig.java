@@ -2,5 +2,5 @@
 package n4l.games.breakoid;
 
 public final class BuildConfig {
-    public final static boolean DEBUG = true;
+	public final static boolean DEBUG = true;
 }

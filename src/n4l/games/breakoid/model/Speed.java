@@ -23,7 +23,7 @@ public class Speed {
 	private int xDirection = DIRECTION_NONE;
 	private int yDirection = DIRECTION_NONE;
 
-	private void checkSet(double xv, double yv) {
+	public void checkSet(double xv, double yv) {
 		double speed = xv * xv + yv * yv;
 		if (limit < speed) {
 			double factor = Math.sqrt(speed) / Math.sqrt(limit);

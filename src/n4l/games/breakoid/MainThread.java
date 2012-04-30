@@ -11,6 +11,7 @@ import android.view.SurfaceHolder;
  * @author Vytis Valentinavičius <xytis2000@gmail.com>
  * 
  */
+
 public class MainThread extends Thread {
 
 	private static final String TAG = "DEBUG: "
@@ -18,8 +19,14 @@ public class MainThread extends Thread {
 
 	private SurfaceHolder surfaceHolder;
 	private MainGameView gameView;
-	// flag to hold game state
+	// Flag to hold game state
 	private boolean running;
+	// Desired fps
+	private final static int MAX_FPS = 25;
+	// Maximum number of frames allowed to be skipped
+	private final static int MAX_FRAME_SKIPS = 5;
+	// The frame period
+	private final static int FRAME_PERIOD = 1000 / MAX_FPS;
 
 	public MainThread(SurfaceHolder surfaceHolder, MainGameView gameView) {
 		super();
@@ -33,29 +40,58 @@ public class MainThread extends Thread {
 
 	@Override
 	public void run() {
-		long tickCount = 0L;
 		Canvas canvas;
 		Log.d(TAG, "Starting game loop");
+
+		long beginTime;
+		long timeDiff;
+		int sleepTime;
+		int framesSkipped;
+
+		sleepTime = 0;
+
 		while (running) {
 			canvas = null;
-			tickCount++;
+			// To draw directly, surface must be locked.
 			try {
 				canvas = this.surfaceHolder.lockCanvas();
 				synchronized (surfaceHolder) {
-					// update game state
+
+					beginTime = System.currentTimeMillis();
+					framesSkipped = 0;
+
+					// Do one cycle
 					this.gameView.update();
-					// draws the canvas on the panel
-					this.gameView.onDraw(canvas);
+					this.gameView.render(canvas);
+					// Calculate how long did the cycle take
+					timeDiff = System.currentTimeMillis() - beginTime;
+					// Check if cycle did fit in one frame period.
+					// If not, the time will be negative.
+					// Then frame dropping will be done.
+					sleepTime = (int) (FRAME_PERIOD - timeDiff);
+
+					// Waste time if possible
+					if (sleepTime > 0) {
+						try {
+							Thread.sleep(sleepTime);
+						} catch (InterruptedException e) {
+						}
+					}
+
+					// Catch up with time.
+					while (sleepTime < 0 && framesSkipped < MAX_FRAME_SKIPS) {
+						this.gameView.update();
+						sleepTime += FRAME_PERIOD;
+						framesSkipped++;
+					}
 				}
 			} finally {
-				// in case of an exception the surface is not left in
-				// an inconsistent state
+				// If something went wrong, unlock the surface
 				if (canvas != null) {
 					surfaceHolder.unlockCanvasAndPost(canvas);
 				}
 			}
 		}
-		Log.d(TAG, "Game loop executed " + tickCount + " times");
 	}
 
 }

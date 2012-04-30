@@ -24,6 +24,7 @@ public class Ball extends Model {
 	private int motion_factor = 30;
 	protected int damage = 1;
 	protected boolean stuck = true;
+    protected boolean out = false;
 
 	/**
 	 * @param x
@@ -35,8 +36,19 @@ public class Ball extends Model {
 		// TODO Auto-generated constructor stub
 		this.speed = new Speed(0, 0, motion_factor);
 	}
+	
+	public boolean isOut()
+	{
+		return out;
+	}
 
 	public void update(ArrayList<Brick> bricks, Paddle paddle, int minX, int maxX, int minY, int maxY) {
+		//If ball is stuck -- follow paddle
+		if (stuck)
+		{
+			x += paddle.getSpeed().getXv() * paddle.getSpeed().getxDirection();
+		}
+		
 		// Move
 		x += (speed.getXv() * speed.getxDirection());
 		y += (speed.getYv() * speed.getyDirection());
@@ -59,8 +71,8 @@ public class Ball extends Model {
 		// check for bottom
 		if (speed.getyDirection() == Speed.DIRECTION_DOWN
 				&& getY() + bitmap.getHeight()/2 >= maxY) {
-			speed.setyDirection(Speed.DIRECTION_UP);
 			//Die later on.
+			out = true;
 		}
 		// Check for paddle
 		if (speed.getyDirection() == Speed.DIRECTION_DOWN
@@ -72,7 +84,7 @@ public class Ball extends Model {
 				//Lets speculate the angle
 				speed.setyDirection(Speed.DIRECTION_UP);
 				// near center should be 0, near sides should be large.
-				double diff = speed.getXv()*speed.getxDirection() + ((double) (getX()- paddle.getX()))/paddle.getBitmap().getWidth()*motion_factor;
+				double diff = speed.getXv()*speed.getxDirection() + ((double) (getX()- paddle.getX()))/paddle.getBitmap().getWidth()*2*motion_factor;
 				// deduce where we are headed now
 				if (diff < 0)
 				{
@@ -82,7 +94,7 @@ public class Ball extends Model {
 				{
 					speed.setxDirection(Speed.DIRECTION_RIGHT);
 				}
-				speed.setXv((int) Math.abs(diff)); 
+				speed.constantSet((int) Math.abs(diff), speed.getYv()); 
 			}
 			
 		}
@@ -95,7 +107,16 @@ public class Ball extends Model {
 				Log.d(TAG, "Hit");
 				brick.hit(damage);
 				//Reflect, later here should go power check.
-				//if ()
+				// 'cause isHit is aimed at speed, not precise information.
+				//TODO Maybe swapDirection would work?
+				if ((brick.getX() - brick.getBitmap().getWidth()/2 < x) && (x < brick.getX() + brick.getBitmap().getWidth()/2))
+				{
+					speed.toggleYDirection();
+				}
+				if ((brick.getY() - brick.getBitmap().getHeight()/2 < y) && (y < brick.getY() + brick.getBitmap().getHeight()/2))
+				{
+					speed.toggleXDirection();
+				}
 			}
 		}
 	}
@@ -114,7 +135,7 @@ public class Ball extends Model {
 			{
 				speed.setxDirection(Speed.DIRECTION_LEFT);
 			}
-			speed.checkSet((int) Math.abs(paddleX - x), motion_factor);
+			speed.constantSet((int) Math.abs(paddleX - x), motion_factor);
 		}
 	}
 }

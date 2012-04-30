@@ -31,6 +31,11 @@ public class Paddle extends MotionModel {
 		this.maxX = maxX - getBitmap().getWidth() / 2;
 		// TODO Auto-generated constructor stub
 	}
+	
+	public Speed getSpeed()
+	{
+		return speed;
+	}
 
 	@Override
 	public void handleActionDown(int eventX, int eventY) {

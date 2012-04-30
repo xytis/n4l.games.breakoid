@@ -55,20 +55,24 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 				R.drawable.paddle), getWidth() / 2, getHeight() - 25, -10,
 				getWidth() + 10);
 
-		balls = new ArrayList<Ball>();
-		balls.add(new Ball(BitmapFactory.decodeResource(getResources(),
-				R.drawable.ball), paddle.getX(), paddle.getY()
-				- paddle.getBitmap().getHeight() / 2 - 17));
+		resetBall();
 
-		bricks = new ArrayList<Brick>();
 		layThoseBricks();
 
 		// When surface is created
 		m_thread.setRunning(true);
 		m_thread.start();
 	}
+	
+	private void resetBall() {
+		balls = new ArrayList<Ball>();
+		balls.add(new Ball(BitmapFactory.decodeResource(getResources(),
+				R.drawable.ball), paddle.getX(), paddle.getY()
+				- paddle.getBitmap().getHeight() / 2 - 17));
+	}
 
 	private void layThoseBricks() {
+		bricks = new ArrayList<Brick>();
 		// For now, just add static amount of bricks. No fancy stuff.
 		Bitmap brick = BitmapFactory.decodeResource(getResources(),
 				R.drawable.brick);
@@ -145,7 +149,21 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 		Iterator<Ball> i = balls.iterator();
 		while (i.hasNext()) {
 			// Boundary params for later use.
-			(i.next()).update(bricks, paddle, 0, getWidth(), 0, getHeight());
+			Ball ball = i.next();
+			ball.update(bricks, paddle, 0, getWidth(), 0, getHeight());
+			if (ball.isOut())
+			{
+				balls.remove(ball);
+			}
+		}
+		if (balls.isEmpty())
+		{
+			resetBall();
+		}
+		if (bricks.isEmpty())
+		{
+			layThoseBricks();
+			resetBall();
 		}
 	}
 

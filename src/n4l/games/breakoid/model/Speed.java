@@ -34,7 +34,7 @@ public class Speed {
 			this.yv = yv;
 		}
 	}
-	
+
 	public void constantSet(double xv, double yv) {
 		double speed = xv * xv + yv * yv;
 		double factor = Math.sqrt(speed) / Math.sqrt(limit);

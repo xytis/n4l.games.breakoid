@@ -53,8 +53,8 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		
-		hud = new Hud(0,getHeight()-30, getWidth(), getHeight());
+
+		hud = new Hud(0, getHeight() - 30, getWidth(), getHeight());
 
 		paddle = new Paddle(BitmapFactory.decodeResource(getResources(),
 				R.drawable.paddle), getWidth() / 2, getHeight() - 55, -10,
@@ -63,7 +63,7 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 		resetBall();
 
 		layThoseBricks();
-		
+
 		falling = new ArrayList<PowerUp>();
 		particles = new ArrayList<Particle>();
 
@@ -71,7 +71,7 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 		m_thread.setRunning(true);
 		m_thread.start();
 	}
-	
+
 	private void resetBall() {
 		balls = new ArrayList<Ball>();
 		balls.add(new Ball(BitmapFactory.decodeResource(getResources(),
@@ -100,26 +100,22 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 			}
 		}
 	}
-	
+
 	static int rndInt(int min, int max) {
 		return (int) (min + Math.random() * (max - min + 1));
 	}
-	
-	private PowerUp generatePowerUp(Brick brick)
-	{
-		int type = rndInt(1,2);
+
+	private PowerUp generatePowerUp(Brick brick) {
+		int type = rndInt(1, 2);
 		return new PowerUp(createBitmap(type), type, brick.getX(), brick.getY());
 	}
-	
-	private Bitmap createBitmap(int type)
-	{
+
+	private Bitmap createBitmap(int type) {
 		switch (type) {
 		case PowerUp.BALLS:
-			return BitmapFactory.decodeResource(getResources(),
-					R.drawable.b);
+			return BitmapFactory.decodeResource(getResources(), R.drawable.b);
 		case PowerUp.FIRE_BALL:
-			return BitmapFactory.decodeResource(getResources(),
-					R.drawable.f);
+			return BitmapFactory.decodeResource(getResources(), R.drawable.f);
 		}
 		return null;
 	}
@@ -176,72 +172,63 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 		while (k.hasNext()) {
 			(k.next()).draw(canvas);
 		}
-		
+
 		paddle.draw(canvas);
-		
+
 		Iterator<Particle> l = particles.iterator();
 		while (l.hasNext()) {
 			(l.next()).draw(canvas);
 		}
-		
+
 		hud.draw(canvas);
 	}
 
 	public void update() {
 		paddle.update();
-		for (int i = 0; i < balls.size(); i++)
-		{
+		for (int i = 0; i < balls.size(); i++) {
 			// Boundary params for later use.
 			Ball ball = balls.get(i);
 			ball.update(bricks, paddle, 0, getWidth(), 0, getHeight());
-			if (ball.isFlaming())
-			{
+			if (ball.isFlaming()) {
 				particles.add(new Particle(ball.getX(), ball.getY()));
 			}
-			if (ball.isOut())
-			{
+			if (ball.isOut()) {
 				balls.remove(i);
 				i--;
 			}
 		}
-		
-		for (int i = 0; i < bricks.size(); i++)
-		{
-			if (bricks.get(i).isDestroyed())
-			{
+
+		for (int i = 0; i < bricks.size(); i++) {
+			if (bricks.get(i).isDestroyed()) {
 				hud.incScore(1);
-				if (bricks.get(i).hasPowerUp())
-				{
+				if (bricks.get(i).hasPowerUp()) {
 					falling.add(generatePowerUp(bricks.get(i)));
 				}
 				bricks.remove(i);
 				i--;
 			}
 		}
-		
-		for (int i = 0; i < falling.size(); i++)
-		{
+
+		for (int i = 0; i < falling.size(); i++) {
 			PowerUp item = falling.get(i);
 			item.update(paddle, getHeight());
-			if (item.isOut())
-			{
-				if (item.isCought())
-				{
+			if (item.isOut()) {
+				if (item.isCought()) {
 					switch (item.getType()) {
 					case PowerUp.BALLS:
-						if (!balls.isEmpty())
-						{
-							Ball ball = new Ball(BitmapFactory.decodeResource(getResources(),R.drawable.ball),
-									balls.get(0).getX(),
-									balls.get(0).getY());
-							//Do some angular stuff =]
-							ball.launch((int) (balls.get(0).getX() + balls.get(0).getSpeed().getXv()*balls.get(0).getSpeed().getyDirection()));
+						if (!balls.isEmpty()) {
+							Ball ball = new Ball(BitmapFactory.decodeResource(
+									getResources(), R.drawable.ball), balls
+									.get(0).getX(), balls.get(0).getY());
+							// Do some angular stuff =]
+							ball.launch((int) (balls.get(0).getX() + balls
+									.get(0).getSpeed().getXv()
+									* balls.get(0).getSpeed().getyDirection()));
 							balls.add(ball);
 						}
 						break;
 					case PowerUp.FIRE_BALL:
-						for (int j = 0; j < balls.size(); j++)
-						{
+						for (int j = 0; j < balls.size(); j++) {
 							balls.get(j).setFlame(200);
 						}
 						break;
@@ -253,24 +240,20 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 				i--;
 			}
 		}
-		
-		for (int i = 0; i < particles.size(); i++)
-		{
+
+		for (int i = 0; i < particles.size(); i++) {
 			particles.get(i).update();
-			if (particles.get(i).isDead())
-			{
+			if (particles.get(i).isDead()) {
 				particles.remove(i);
 				i--;
 			}
 		}
-		
-		if (balls.isEmpty())
-		{
+
+		if (balls.isEmpty()) {
 			resetBall();
 			hud.reset();
 		}
-		if (bricks.isEmpty())
-		{
+		if (bricks.isEmpty()) {
 			layThoseBricks();
 			resetBall();
 			hud.incScore(100);

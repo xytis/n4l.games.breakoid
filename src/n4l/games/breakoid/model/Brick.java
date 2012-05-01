@@ -12,19 +12,16 @@ public class Brick extends Model {
 
 	public Brick(Bitmap bitmap, int x, int y) {
 		super(bitmap, x, y);
-		if (Math.random() > 0.9)
-		{
+		if (Math.random() > 0.9) {
 			powerup = true;
 		}
 	}
-	
-	public boolean isDestroyed()
-	{
+
+	public boolean isDestroyed() {
 		return destroyed;
 	}
-	
-	public boolean hasPowerUp()
-	{
+
+	public boolean hasPowerUp() {
 		return powerup;
 	}
 

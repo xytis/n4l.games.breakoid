@@ -8,15 +8,24 @@ public class Brick extends Model {
 	protected int m_health = 1;
 
 	protected boolean destroyed = false;
+	protected boolean powerup = false;
 
 	public Brick(Bitmap bitmap, int x, int y) {
 		super(bitmap, x, y);
-		// TODO Auto-generated constructor stub
+		if (Math.random() > 0.9)
+		{
+			powerup = true;
+		}
 	}
 	
 	public boolean isDestroyed()
 	{
 		return destroyed;
+	}
+	
+	public boolean hasPowerUp()
+	{
+		return powerup;
 	}
 
 	public boolean isHit(int x, int y, int radius) {

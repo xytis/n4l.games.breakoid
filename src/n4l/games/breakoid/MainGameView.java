@@ -30,7 +30,10 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 
 	private ArrayList<Brick> bricks;
 	private ArrayList<Ball> balls;
+	private ArrayList<PowerUp> falling;
+	private ArrayList<Particle> particles;
 	private Paddle paddle;
+	private Hud hud;
 
 	public MainGameView(Context context) {
 		super(context);
@@ -50,14 +53,19 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
+		
+		hud = new Hud(0,getHeight()-30, getWidth(), getHeight());
 
 		paddle = new Paddle(BitmapFactory.decodeResource(getResources(),
-				R.drawable.paddle), getWidth() / 2, getHeight() - 25, -10,
+				R.drawable.paddle), getWidth() / 2, getHeight() - 55, -10,
 				getWidth() + 10);
 
 		resetBall();
 
 		layThoseBricks();
+		
+		falling = new ArrayList<PowerUp>();
+		particles = new ArrayList<Particle>();
 
 		// When surface is created
 		m_thread.setRunning(true);
@@ -91,6 +99,29 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 						brick.getHeight() * j + offsetY));
 			}
 		}
+	}
+	
+	static int rndInt(int min, int max) {
+		return (int) (min + Math.random() * (max - min + 1));
+	}
+	
+	private PowerUp generatePowerUp(Brick brick)
+	{
+		int type = rndInt(1,2);
+		return new PowerUp(createBitmap(type), type, brick.getX(), brick.getY());
+	}
+	
+	private Bitmap createBitmap(int type)
+	{
+		switch (type) {
+		case PowerUp.BALLS:
+			return BitmapFactory.decodeResource(getResources(),
+					R.drawable.b);
+		case PowerUp.FIRE_BALL:
+			return BitmapFactory.decodeResource(getResources(),
+					R.drawable.f);
+		}
+		return null;
 	}
 
 	@Override
@@ -141,7 +172,19 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 		while (j.hasNext()) {
 			(j.next()).draw(canvas);
 		}
+		Iterator<PowerUp> k = falling.iterator();
+		while (k.hasNext()) {
+			(k.next()).draw(canvas);
+		}
+		
 		paddle.draw(canvas);
+		
+		Iterator<Particle> l = particles.iterator();
+		while (l.hasNext()) {
+			(l.next()).draw(canvas);
+		}
+		
+		hud.draw(canvas);
 	}
 
 	public void update() {
@@ -151,6 +194,10 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 			// Boundary params for later use.
 			Ball ball = balls.get(i);
 			ball.update(bricks, paddle, 0, getWidth(), 0, getHeight());
+			if (ball.isFlaming())
+			{
+				particles.add(new Particle(ball.getX(), ball.getY()));
+			}
 			if (ball.isOut())
 			{
 				balls.remove(i);
@@ -162,19 +209,71 @@ public class MainGameView extends SurfaceView implements SurfaceHolder.Callback 
 		{
 			if (bricks.get(i).isDestroyed())
 			{
+				hud.incScore(1);
+				if (bricks.get(i).hasPowerUp())
+				{
+					falling.add(generatePowerUp(bricks.get(i)));
+				}
 				bricks.remove(i);
 				i--;
 			}
-		}		
+		}
+		
+		for (int i = 0; i < falling.size(); i++)
+		{
+			PowerUp item = falling.get(i);
+			item.update(paddle, getHeight());
+			if (item.isOut())
+			{
+				if (item.isCought())
+				{
+					switch (item.getType()) {
+					case PowerUp.BALLS:
+						if (!balls.isEmpty())
+						{
+							Ball ball = new Ball(BitmapFactory.decodeResource(getResources(),R.drawable.ball),
+									balls.get(0).getX(),
+									balls.get(0).getY());
+							//Do some angular stuff =]
+							ball.launch((int) (balls.get(0).getX() + balls.get(0).getSpeed().getXv()*balls.get(0).getSpeed().getyDirection()));
+							balls.add(ball);
+						}
+						break;
+					case PowerUp.FIRE_BALL:
+						for (int j = 0; j < balls.size(); j++)
+						{
+							balls.get(j).setFlame(200);
+						}
+						break;
+					default:
+						break;
+					}
+				}
+				falling.remove(i);
+				i--;
+			}
+		}
+		
+		for (int i = 0; i < particles.size(); i++)
+		{
+			particles.get(i).update();
+			if (particles.get(i).isDead())
+			{
+				particles.remove(i);
+				i--;
+			}
+		}
 		
 		if (balls.isEmpty())
 		{
 			resetBall();
+			hud.reset();
 		}
 		if (bricks.isEmpty())
 		{
 			layThoseBricks();
 			resetBall();
+			hud.incScore(100);
 		}
 	}
 

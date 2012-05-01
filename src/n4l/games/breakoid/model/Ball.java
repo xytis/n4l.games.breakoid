@@ -25,6 +25,8 @@ public class Ball extends Model {
 	protected int damage = 1;
 	protected boolean stuck = true;
     protected boolean out = false;
+    
+    private int flame = 0;
 
 	/**
 	 * @param x
@@ -37,9 +39,24 @@ public class Ball extends Model {
 		this.speed = new Speed(0, 0, motion_factor);
 	}
 	
+	public Speed getSpeed()
+	{
+		return speed;
+	}
+	
 	public boolean isOut()
 	{
 		return out;
+	}
+	
+	public void setFlame(int flame)
+	{
+		this.flame = flame;
+	}
+	
+	public boolean isFlaming()
+	{
+		return flame > 0;
 	}
 
 	public void update(ArrayList<Brick> bricks, Paddle paddle, int minX, int maxX, int minY, int maxY) {
@@ -48,6 +65,8 @@ public class Ball extends Model {
 		{
 			x += paddle.getSpeed().getXv() * paddle.getSpeed().getxDirection();
 		}
+		
+		flame--;
 		
 		// Move
 		x += (speed.getXv() * speed.getxDirection());
@@ -78,8 +97,8 @@ public class Ball extends Model {
 		if (speed.getyDirection() == Speed.DIRECTION_DOWN
 				&& getY() + bitmap.getHeight()/2 >= (paddle.getY() - paddle.getBitmap().getHeight()/2)) {
 			//Below paddle surface. Now do we hit the paddle?
-			if ((getX() > paddle.getX() - paddle.getBitmap().getWidth()/2) &&
-					(getX() < paddle.getX() + paddle.getBitmap().getWidth()/2))
+			if ((getX() + getBitmap().getWidth()/2 > paddle.getX() - paddle.getBitmap().getWidth()/2) &&
+					(getX() - getBitmap().getWidth()/2 < paddle.getX() + paddle.getBitmap().getWidth()/2))
 			{
 				//Lets speculate the angle
 				speed.setyDirection(Speed.DIRECTION_UP);
@@ -109,13 +128,16 @@ public class Ball extends Model {
 				//Reflect, later here should go power check.
 				// 'cause isHit is aimed at speed, not precise information.
 				//TODO Maybe swapDirection would work?
-				if ((brick.getX() - brick.getBitmap().getWidth()/2 < x) && (x < brick.getX() + brick.getBitmap().getWidth()/2))
+				if (flame <= 0)
 				{
-					speed.toggleYDirection();
-				}
-				if ((brick.getY() - brick.getBitmap().getHeight()/2 < y) && (y < brick.getY() + brick.getBitmap().getHeight()/2))
-				{
-					speed.toggleXDirection();
+					if ((brick.getX() - brick.getBitmap().getWidth()/2 < x) && (x < brick.getX() + brick.getBitmap().getWidth()/2))
+					{
+						speed.toggleYDirection();
+					}
+					if ((brick.getY() - brick.getBitmap().getHeight()/2 < y) && (y < brick.getY() + brick.getBitmap().getHeight()/2))
+					{
+						speed.toggleXDirection();
+					}
 				}
 			}
 		}
